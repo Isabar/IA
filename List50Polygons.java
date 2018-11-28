@@ -109,7 +109,7 @@ public class List50Polygons implements Comparable{
 				+Math.pow(c.getGreen()-target[i][j].getGreen(),2);
 			}
 		}
-		System.out.println("score score "+Math.sqrt(res));
+		//System.out.println("score score "+Math.sqrt(res));
 		return Math.sqrt(res);
 	}
 	
@@ -126,17 +126,17 @@ public class List50Polygons implements Comparable{
 	public int compareTo(Object o) {
 		if ( o instanceof List50Polygons)
 		if ( this.score< ((List50Polygons)o).score) {
-			return -1;
+			return 1;
 		}
-		else {
-			return 1; 
+		else if (this.score> ((List50Polygons)o).score ){
+			return -1; 
 		}
 		return 0;
 	}
 
 	public void setScore() {
 		this.score = score(list);
-		System.out.println("set score"+score);
+		//System.out.println("set score"+score);
 	}
 
 }
