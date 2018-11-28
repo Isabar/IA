@@ -17,6 +17,7 @@ public class Population extends Application implements Comparator {
 	private int effectif=10;
 	private int numPoint=10;
 	int nbgeneration; // nb de generations au total
+	private static final double epsilon= 0.5;
 	
 	public Population() {
 		super();
@@ -44,12 +45,21 @@ public class Population extends Application implements Comparator {
 		
 		
 		p1 = new Population(); // initialisation pop a effectif
+		double s1=0;
+		double s2=0;
+		int n=0;
+		double V=1; // on initialise la variance a 1
+		
+		while (V>epsilon) {
+			n++; // nombre d'iterations 
+		
 		p1.l.sort(p1); // on la trie en fonction du score
 		
 		selection(p1.l);// on enleve les 4 pires
 		
 		LinkedList<List50Polygons> generationNouvelle= new LinkedList<List50Polygons>();
 		nbgeneration++;
+		
 		for (int i=0; i<p1.l.size();i++) {
 			for (int j=i+1; j<p1.l.size();j++) {
 				LinkedList<List50Polygons> l= p1.crossover(i,j);
@@ -64,6 +74,13 @@ public class Population extends Application implements Comparator {
 		int individuChoisi= (int)(Math.random()*(p1.l.size()-1));
 		List50Polygons individuMute= p1.mutation(p1.l.get(individuChoisi));
 		p1.l.set(individuChoisi, individuMute);
+		
+		// calcul de la variance
+		s1=s1+p1.l.get(l.size()-1).score; // somme des meilleurs scores  le dernier individu est le meilleur
+		s2=s2+ Math.pow(p1.l.get(l.size()-1).score,2.0); // somme des carrés des meilleurs scores 
+		V=s2-Math.pow(s1, 2.0)/n;
+		System.out.println("Variance ="+V);
+		// affichage
 		for ( int i=0; i<p1.l.size();i++) {
 			System.out.println("liste "+i+" "+p1.l.get(i).score);
 		}
@@ -75,7 +92,7 @@ public class Population extends Application implements Comparator {
 		System.out.print("chrono  ");
 		System.out.println( System.currentTimeMillis()-startChrono);
 		System.out.println("nb generation "+nbgeneration);
-		
+		}
 	}
 	
 

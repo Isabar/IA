@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 public class List50Polygons implements Comparable{
 	LinkedList<ConvexPolygon> list;
 	double score;
+	
 	int generation;
 	
 	public List50Polygons(int generation ) {
