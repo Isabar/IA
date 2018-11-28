@@ -15,7 +15,7 @@ public class Population extends Application implements Comparator {
 	LinkedList<List50Polygons> l; // si trop long faire avec priorityQueue
 	private Population p1;
 	private int effectif = 60;
-	private int numPoint = 6;
+	private int numPoint = 4;
 	int nbgeneration; // nb de generations au total
 	private static final double epsilon = 0.001;
 
@@ -70,17 +70,25 @@ public class Population extends Application implements Comparator {
 
 			p1.l = generationNouvelle;
 
-			int individuChoisi = (int) (Math.random() * (p1.l.size() - 1));
-			List50Polygons individuMute = p1.mutation(p1.l.get(individuChoisi));
-			p1.l.set(individuChoisi, individuMute);
+			// muation sur 1 individu de la pop
+			
+			  int individuChoisi = (int) (Math.random() * (p1.l.size() - 1));
+			  List50Polygons individuMute = p1.mutation(p1.l.get(individuChoisi));
+			  p1.l.set(individuChoisi, individuMute);
+			 
+			// mutation sur tous les individus de la pop
+			/*for (int i = 0; i < p1.l.size(); i++) {
+				List50Polygons individuMute = p1.mutation(p1.l.get(i));
+				p1.l.set(i, individuMute);
+			}*/
 
 			// calcul de la variance
 			p1.l.sort(p1);
 			s1 = p1.l.get(l.size() - 1).score; // somme des meilleurs scores le dernier individu est le meilleur
-			s2 = (s2 + p1.l.get(l.size() - 1).score)/2; // somme des carrés des meilleurs scores
-			V = Math.pow(s1-s2, 2.0)/n;
+			s2 = (s2 + p1.l.get(l.size() - 1).score) / 2; // somme des carrés des meilleurs scores
+			V = Math.pow(s1 - s2, 2.0) / n;
 			System.out.println("score " + p1.l.get(p1.l.size() - 1).score);
-			System.out.println("n "+n);
+			System.out.println("n " + n);
 			System.out.println("s1 et s2 " + s1 + " " + s2);
 			System.out.println("Variance =" + V);
 			// affichage
