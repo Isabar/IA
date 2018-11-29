@@ -1,23 +1,24 @@
-import java.awt.image.RenderedImage;
-import java.io.File;
-import java.io.IOException;
+
 import java.util.Comparator;
 import java.util.LinkedList;
 
-import javax.imageio.ImageIO;
-
 import javafx.application.Application;
-import javafx.embed.swing.SwingFXUtils;
+
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class Population extends Application implements Comparator {
+public class Population extends Application implements Comparator<List50Polygons> {
 	LinkedList<List50Polygons> l; // si trop long faire avec priorityQueue
 	private Population p1;
-	private int effectif = 60;
-	private int numPoint = 4;
-	int nbgeneration; // nb de generations au total
-	private static final double epsilon = 0.001;
+	private int effectif = 10;// effectif initial de la population
+	int effectifSSPop = 5;// effectif de la sous-population suite à la séléction
+	private int numPoint = 6; // nb de sommets max pour les polygons
+	private static final double epsilon = 0.5; // seuil d'arret
+	private double probaMutation = 0.8;
+	// ???
+	// vraiment nécessaire d'ajouter la génération à l'individu ? on fait le
+	// décompte avec le n
+	int nbgeneration;
 
 	public Population() {
 		super();
@@ -30,7 +31,6 @@ public class Population extends Application implements Comparator {
 	}
 
 	public static void main(String[] args) {
-		// System.out.println("debut 1");
 		launch(args);
 
 	}
@@ -40,56 +40,38 @@ public class Population extends Application implements Comparator {
 
 	public void start(Stage primaryStage) throws Exception {
 		long startChrono = System.currentTimeMillis();
-		p1 = new Population(); // initialisation pop a effectif
+		p1 = new Population();
+		// pour le calcul de la variance
 		double s1 = 0;
 		double s2 = 0;
-		int n = 0;
+		int n = 0;// nombre de générations
+
 		double V = 1; // on initialise la variance a 1
-		double scoreFinal = 50; // deux possibilités pour la condition d'arrêt : elitiste ou quand le score non
-								// convient
+
+		// deux possibilités pour la condition d'arrêt : elitiste ou quand le score
+		// semble convenable
+		double scoreFinal = 50;
 		double testScore = 200;
+
 		while (V > epsilon) {
 			n++; // nombre d'iterations
 
 			p1.l.sort(p1); // on la trie en fonction du score
+			LinkedList<List50Polygons> generationNouvelle = selection(p1.l, effectifSSPop);
 
-			selection(p1.l, effectif);// on enleve les 4 pires
-
-			LinkedList<List50Polygons> generationNouvelle = new LinkedList<List50Polygons>();
+			// ????
 			nbgeneration++;
 
-			for (int i = 0; i < p1.l.size(); i++) {
-				for (int j = i + 1; j < p1.l.size(); j++) {
-					LinkedList<List50Polygons> l = p1.crossover(i, j);
-					generationNouvelle.add(l.get(0));
-					generationNouvelle.add(l.get(1)); // on recupere les enfants on les mets dans une nouvelle
-														// generation
-				}
-			}
-			// System.out.println(" taille generationNouvelle" + generationNouvelle.size());
+			LinkedList<List50Polygons> CrossOver = p1.crossover(generationNouvelle);
+			p1.l = mutation(CrossOver);
 
-			p1.l = generationNouvelle;
-
-			// muation sur 1 individu de la pop
-			
-			  int individuChoisi = (int) (Math.random() * (p1.l.size() - 1));
-			  List50Polygons individuMute = p1.mutation(p1.l.get(individuChoisi));
-			  p1.l.set(individuChoisi, individuMute);
-			 
-			// mutation sur tous les individus de la pop
-			/*for (int i = 0; i < p1.l.size(); i++) {
-				List50Polygons individuMute = p1.mutation(p1.l.get(i));
-				p1.l.set(i, individuMute);
-			}*/
 
 			// calcul de la variance
 			p1.l.sort(p1);
 			s1 = p1.l.get(l.size() - 1).score; // somme des meilleurs scores le dernier individu est le meilleur
 			s2 = (s2 + p1.l.get(l.size() - 1).score) / 2; // somme des carrés des meilleurs scores
 			V = Math.pow(s1 - s2, 2.0) / n;
-			System.out.println("score " + p1.l.get(p1.l.size() - 1).score);
-			System.out.println("n " + n);
-			System.out.println("s1 et s2 " + s1 + " " + s2);
+			
 			System.out.println("Variance =" + V);
 			// affichage
 			testScore = p1.l.get(p1.l.size() - 1).score;
@@ -109,85 +91,90 @@ public class Population extends Application implements Comparator {
 		System.out.println(System.currentTimeMillis() - startChrono);
 		System.out.println("nb generation " + nbgeneration);
 		System.out.println("score final" + p1.l.get(p1.l.size() - 1).score);
+		System.out.println("nb generation " + p1.l.get(p1.l.size() - 1).generation);
 
 	}
 
-	@Override
-	public int compare(Object o0, Object o1) {
-		List50Polygons l0 = (List50Polygons) o0;
-		List50Polygons l1 = (List50Polygons) o1;
-		if (l0.score < l1.score) {
-			return 1;
-		} else if (l0.score == l1.score) {
-			return 0;
-		}
-		return -1;
-	}
-
-	// on garde 6 elements sur 10 suprimé les 4 premiers voir si on doit pas garder
-	// des score bas
-	public void selection(LinkedList<List50Polygons> l, int nbIndividus) {
+	// il faut que la séléction donne un sous-ensemble de la population qu'on
+	// utilise ensuite dans le crossover
+	public LinkedList<List50Polygons> selection(LinkedList<List50Polygons> l, int nbIndividus) {
 		int k = l.size() - nbIndividus;
 		// System.out.println(k);
 		for (int i = 0; i < k; i++) {
 			l.remove();
 		}
 		// System.out.println( "taille après selec"+l.size());
+		return l;
 	}
 
-	// retourne la liste des enfanst créés par le crossover
-
-	public LinkedList<List50Polygons> crossover(int indiceparent1, int indiceparent2) {
-
+	// retourne la liste des enfants créés par le crossover de même taille qu ela
+	// poop initial
+	// prend en paramètre la liste crée suite à la sélection
+	public LinkedList<List50Polygons> crossover(LinkedList<List50Polygons> l) {
+		int nbCouples = effectif / 2;
+		System.out.println(" nb couples : " + nbCouples);
 		LinkedList<List50Polygons> progeniture = new LinkedList<List50Polygons>();
 		int crossoverPoint = -1;
-		while (crossoverPoint <= 0 || crossoverPoint >= 50) { // On exclu le cas ou crossoverPoint=0 ou =50
-			crossoverPoint = (int) (Math.random() * 50);
+		for (int i = 0; i < nbCouples; i++) {
+			int indiceparent1 = (int) (Math.random() * (l.size() - 1));// on choisit les coiuples de parents de façon
+																		// totalement aléatoire
+			int indiceparent2 = (int) (Math.random() * (l.size() - 1));
+			while (crossoverPoint < 0 || crossoverPoint >= 50) { // On garde le cas où =0 les parents restent
+																	// indentiques dans ce cas ou =50
+				crossoverPoint = (int) (Math.random() * 50);
 
+			}
+			// System.out.println("crossoverPoint " +crossoverPoint);
+
+			List50Polygons parent1 = l.get(indiceparent1);
+			List50Polygons parent2 = l.get(indiceparent2);
+			// System.out.println("test1");
+			List50Polygons enfant1 = new List50Polygons(nbgeneration);
+			List50Polygons enfant2 = new List50Polygons(nbgeneration);
+			// System.out.println("test2");
+			for (int j = 0; j < crossoverPoint; j++) { // avant le point de crossover on effectue une copie
+				enfant1.list.add(parent1.list.get(j));
+				enfant2.list.add(parent2.list.get(j));
+
+			}
+
+			for (int k = crossoverPoint; k < 50; k++) { // avant le point de crossover on effectue une copie
+				enfant1.list.add(parent2.list.get(k));
+				enfant2.list.add(parent1.list.get(k));
+
+			}
+
+			enfant1.setScore();
+			enfant2.setScore();
+			progeniture.add(enfant1);
+			progeniture.add(enfant2);
 		}
-		// System.out.println("crossoverPoint " +crossoverPoint);
-
-		int tmp;
-		List50Polygons parent1 = l.get(indiceparent1);
-		List50Polygons parent2 = l.get(indiceparent2);
-		// System.out.println("test1");
-		List50Polygons enfant1 = new List50Polygons(nbgeneration);
-		List50Polygons enfant2 = new List50Polygons(nbgeneration);
-		// System.out.println("test2");
-		for (int i = 0; i < crossoverPoint; i++) { // avant le point de crossover on effectue une copie
-			enfant1.list.add(parent1.list.get(i));
-			enfant2.list.add(parent2.list.get(i));
-
-		}
-
-		for (int i = crossoverPoint; i < 50; i++) { // avant le point de crossover on effectue une copie
-			enfant1.list.add(parent2.list.get(i));
-			enfant2.list.add(parent1.list.get(i));
-
-		}
-
-		enfant1.setScore();
-		enfant2.setScore();
-		// System.out.println("score enfant"+enfant1.score);
-
-		/*
-		 * System.out.println(parent1.list); System.out.println(enfant1.list);
-		 * System.out.println(parent2.list); System.out.println(enfant2.list);
-		 */
-		progeniture.add(enfant1);
-		progeniture.add(enfant2);
-
+		System.out.println("progeniture  " + progeniture.size());
 		return progeniture;
 
 	}
 
-	public List50Polygons mutation(List50Polygons ind) {
+	public LinkedList<List50Polygons> mutation(LinkedList<List50Polygons> l) {
+		for (int i = 0; i < p1.l.size(); i++) {
+			double proba = Math.random();
+			if (proba < probaMutation) {
+				int mutationPoint = (int) (Math.random() * 50);
+				ConvexPolygon CP = new ConvexPolygon(numPoint);
+				l.get(i).list.set(mutationPoint, CP);
+				l.get(i).setScore();
+			}
+		}
+		return l;
+	}
 
-		int mutationPoint = (int) (Math.random() * 50); // l'indice du polygone qui sera muté
-		ConvexPolygon CP = new ConvexPolygon(numPoint);
-		ind.list.set(mutationPoint, CP);
-		ind.setScore();
-		return ind;
+	@Override
+	public int compare(List50Polygons l0, List50Polygons l1) {
+		if (l0.score < l1.score) {
+			return 1;
+		} else if (l0.score == l1.score) {
+			return 0;
+		}
+		return -1;
 	}
 
 }

@@ -14,7 +14,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 
 
-public class List50Polygons implements Comparable{
+public class List50Polygons {
 	LinkedList<ConvexPolygon> list;
 	double score;
 	
@@ -119,19 +119,6 @@ public class List50Polygons implements Comparable{
 			result=result+list.get(i).toString();
 		}
 	   return  result + " " +generation;
-	}
-
-
-	@Override
-	public int compareTo(Object o) {
-		if ( o instanceof List50Polygons)
-		if ( this.score< ((List50Polygons)o).score) {
-			return 1;
-		}
-		else if (this.score> ((List50Polygons)o).score ){
-			return -1; 
-		}
-		return 0;
 	}
 
 	public void setScore() {
