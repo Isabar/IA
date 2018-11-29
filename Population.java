@@ -15,6 +15,7 @@ public class Population extends Application implements Comparator<List50Polygons
 	private int numPoint = 6; // nb de sommets max pour les polygons
 	private static final double epsilon = 0.5; // seuil d'arret
 	private double probaMutation = 0.8;
+	int nbPolygons=50;
 	// ???
 	// vraiment nécessaire d'ajouter la génération à l'individu ? on fait le
 	// décompte avec le n
@@ -119,9 +120,9 @@ public class Population extends Application implements Comparator<List50Polygons
 			int indiceparent1 = (int) (Math.random() * (l.size() - 1));// on choisit les coiuples de parents de façon
 																		// totalement aléatoire
 			int indiceparent2 = (int) (Math.random() * (l.size() - 1));
-			while (crossoverPoint < 0 || crossoverPoint >= 50) { // On garde le cas où =0 les parents restent
+			while (crossoverPoint < 0 || crossoverPoint >= nbPolygons) { // On garde le cas où =0 les parents restent
 																	// indentiques dans ce cas ou =50
-				crossoverPoint = (int) (Math.random() * 50);
+				crossoverPoint = (int) (Math.random() * nbPolygons);
 
 			}
 			// System.out.println("crossoverPoint " +crossoverPoint);
@@ -138,7 +139,62 @@ public class Population extends Application implements Comparator<List50Polygons
 
 			}
 
-			for (int k = crossoverPoint; k < 50; k++) { // avant le point de crossover on effectue une copie
+			for (int k = crossoverPoint; k < nbPolygons; k++) { // avant le point de crossover on effectue une copie
+				enfant1.list.add(parent2.list.get(k));
+				enfant2.list.add(parent1.list.get(k));
+
+			}
+
+			enfant1.setScore();
+			enfant2.setScore();
+			progeniture.add(enfant1);
+			progeniture.add(enfant2);
+		}
+		System.out.println("progeniture  " + progeniture.size());
+		return progeniture;
+
+	}
+	
+	public LinkedList<List50Polygons> Doublecrossover(LinkedList<List50Polygons> l) {
+		int nbCouples = effectif / 2;
+		System.out.println(" nb couples : " + nbCouples);
+		LinkedList<List50Polygons> progeniture = new LinkedList<List50Polygons>();
+		int crossoverPoint1 = -1;
+		int crossoverPoint2 = -1;
+		for (int i = 0; i < nbCouples; i++) {
+			int indiceparent1 = (int) (Math.random() * (l.size() - 1));// on choisit les coiuples de parents de façon														// totalement aléatoire
+			int indiceparent2 = (int) (Math.random() * (l.size() - 1));
+			while ((crossoverPoint1 < 0 || crossoverPoint1 >= nbPolygons)&&(crossoverPoint1 < 0 || crossoverPoint1 >= nbPolygons)) { // On garde le cas où =0 les parents restent
+																	// indentiques dans ce cas ou =50
+				crossoverPoint1 = (int) (Math.random() * 50);
+				crossoverPoint2 = (int) (Math.random() * 50);
+			}
+			// System.out.println("crossoverPoint " +crossoverPoint);
+
+			List50Polygons parent1 = l.get(indiceparent1);
+			List50Polygons parent2 = l.get(indiceparent2);
+
+			List50Polygons enfant1 = new List50Polygons(nbgeneration);
+			List50Polygons enfant2 = new List50Polygons(nbgeneration);
+			
+			if ( crossoverPoint1>crossoverPoint2) {
+				int tmp = crossoverPoint1;
+				crossoverPoint1=crossoverPoint2;
+				crossoverPoint2=tmp;
+			}
+			
+			for (int j = 0; j < crossoverPoint1; j++) { // avant le point de crossover on effectue une copie
+				enfant1.list.add(parent1.list.get(j));
+				enfant2.list.add(parent2.list.get(j));
+
+			}
+
+			for (int k = crossoverPoint1; k <crossoverPoint2; k++) { // avant le point de crossover on effectue une copie
+				enfant1.list.add(parent2.list.get(k));
+				enfant2.list.add(parent1.list.get(k));
+
+			}
+			for (int k = crossoverPoint2; k <nbPolygons; k++) { // avant le point de crossover on effectue une copie
 				enfant1.list.add(parent2.list.get(k));
 				enfant2.list.add(parent1.list.get(k));
 
@@ -154,11 +210,12 @@ public class Population extends Application implements Comparator<List50Polygons
 
 	}
 
+
 	public LinkedList<List50Polygons> mutation(LinkedList<List50Polygons> l) {
 		for (int i = 0; i < p1.l.size(); i++) {
 			double proba = Math.random();
 			if (proba < probaMutation) {
-				int mutationPoint = (int) (Math.random() * 50);
+				int mutationPoint = (int) (Math.random() * nbPolygons);
 				ConvexPolygon CP = new ConvexPolygon(numPoint);
 				l.get(i).list.set(mutationPoint, CP);
 				l.get(i).setScore();
