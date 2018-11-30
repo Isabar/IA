@@ -10,11 +10,11 @@ import javafx.stage.Stage;
 public class Population extends Application implements Comparator<List50Polygons> {
 	LinkedList<List50Polygons> l; // si trop long faire avec priorityQueue
 	private Population p1;
-	private int effectif = 10;// effectif initial de la population
-	int effectifSSPop = 5;// effectif de la sous-population suite à la séléction
+	private int effectif = 200;// effectif initial de la population
+	int effectifSSPop = 100;// effectif de la sous-population suite à la séléction
 	private int numPoint = 6; // nb de sommets max pour les polygons
-	private static final double epsilon = 0.5; // seuil d'arret
-	private double probaMutation = 0.8;
+	private static final double epsilon = 0.005; // seuil d'arret
+	private double probaMutation = 0.01;
 	int nbPolygons=50;
 	// ???
 	// vraiment nécessaire d'ajouter la génération à l'individu ? on fait le
@@ -51,10 +51,10 @@ public class Population extends Application implements Comparator<List50Polygons
 
 		// deux possibilités pour la condition d'arrêt : elitiste ou quand le score
 		// semble convenable
-		double scoreFinal = 50;
+		double scoreFinal = 30;
 		double testScore = 200;
 
-		while (V > epsilon) {
+		while (testScore>scoreFinal) {
 			n++; // nombre d'iterations
 
 			p1.l.sort(p1); // on la trie en fonction du score
@@ -69,11 +69,11 @@ public class Population extends Application implements Comparator<List50Polygons
 
 			// calcul de la variance
 			p1.l.sort(p1);
-			s1 = p1.l.get(l.size() - 1).score; // somme des meilleurs scores le dernier individu est le meilleur
-			s2 = (s2 + p1.l.get(l.size() - 1).score) / 2; // somme des carrés des meilleurs scores
-			V = Math.pow(s1 - s2, 2.0) / n;
+			//s1 = p1.l.get(l.size() - 1).score; // somme des meilleurs scores le dernier individu est le meilleur
+			//s2 = (s2 + p1.l.get(l.size() - 1).score) / 2; // somme des carrés des meilleurs scores
+			//V = Math.pow(s1 - s2, 2.0) / n;
 			
-			System.out.println("Variance =" + V);
+			//System.out.println("Variance =" + V);
 			// affichage
 			testScore = p1.l.get(p1.l.size() - 1).score;
 			System.out.println(testScore);
@@ -96,17 +96,45 @@ public class Population extends Application implements Comparator<List50Polygons
 
 	}
 
+	
+	
+	
 	// il faut que la séléction donne un sous-ensemble de la population qu'on
 	// utilise ensuite dans le crossover
+	
 	public LinkedList<List50Polygons> selection(LinkedList<List50Polygons> l, int nbIndividus) {
-		int k = l.size() - nbIndividus;
-		// System.out.println(k);
-		for (int i = 0; i < k; i++) {
-			l.remove();
+		
+		LinkedList<List50Polygons> popSelectionnee= new LinkedList<List50Polygons>();
+		double scoreMin= l.get(l.size() - 1).score;
+		double scoreMax=l.get(0).score;
+		
+		
+		while ( popSelectionnee.size()<nbIndividus) {
+		
+			int i= (int)(Math.random() * (l.size() - 1));
+			List50Polygons indSelectionne= l.get(i);
+			
+			double r=(double)(Math.random()* (scoreMax-scoreMin));  
+			if (r>indSelectionne.score) {
+				popSelectionnee.add(indSelectionne);
+			}
 		}
+	
+		//int k = l.size() - nbIndividus;
+		// System.out.println(k);
+		/*for (int i = 0; i < k; i++) {
+			l.remove();
+		}*/
 		// System.out.println( "taille après selec"+l.size());
-		return l;
+		return popSelectionnee;
 	}
+	
+	
+	
+	
+	
+	
+	
 
 	// retourne la liste des enfants créés par le crossover de même taille qu ela
 	// poop initial
